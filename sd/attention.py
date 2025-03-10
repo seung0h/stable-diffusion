@@ -73,7 +73,9 @@ class CrossAttention(nn.Module):
 
         interim_shape = (batch_size, -1, self.n_heads, self.d_head)
 
-        # multiply query
+        # q = w_q * x, 
+        # k = w_k * y, 
+        # v = w_v * y
         q = self.q_proj(x)
         k = self.k_proj(y)
         v = self.v_proj(y)
@@ -82,12 +84,12 @@ class CrossAttention(nn.Module):
         k = k.view(interim_shape).transpose(1, 2)
         v = v.view(interim_shape).transpose(1, 2)
 
+        # weight = softmax(q @ k^T / sqrt(d_head))
         weight = q @ k.transpose(-1, -2)
-
         weight /= math.sqrt(self.d_head)
-
         weight = F.softmax(weight, dim=-1)
 
+        # attention score 
         output = weight @ v
 
         output = output.transpose(1, 2).continuous()
