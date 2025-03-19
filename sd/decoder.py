@@ -1,9 +1,10 @@
 import torch
-import torch.nn as nn
+from torch import nn
 import torch.nn.functional as F
-from sd.attention import SelfAttention
+from attention import SelfAttention
 
-class VAE_AttentionBlock(nn.module):
+
+class VAE_AttentionBlock(nn.Module):
     def __init__(self, channels: int):
         super().__init__()
         # why group norm?
@@ -33,8 +34,7 @@ class VAE_AttentionBlock(nn.module):
         
         return x
 
-
-class VAE_ResidualBock(nn.module):
+class VAE_ResidualBlock(nn.Module):
     def __init__(self, in_channels, out_channels):
         super().__init__()
 
@@ -69,41 +69,41 @@ class VAE_Decoder(nn.Sequential):
         super().__init__(
             nn.Conv2d(4, 4, kernel_size=1, padding=0),
             nn.Conv2d(4, 512, kernel_size=3, padding=1),
-            VAE_ResidualBock(512, 512),
+            VAE_ResidualBlock(512, 512),
             VAE_AttentionBlock(512),
-            VAE_ResidualBock(512, 512),
+            VAE_ResidualBlock(512, 512),
 
-            VAE_ResidualBock(512, 512),
+            VAE_ResidualBlock(512, 512),
 
-            VAE_ResidualBock(512, 512),
+            VAE_ResidualBlock(512, 512),
 
-            VAE_ResidualBock(512, 512),
+            VAE_ResidualBlock(512, 512),
 
             # upsample H/4, W/4
             nn.Upsample(scale_factor=2),
 
             nn.Conv2d(512, 512, kernel_size=3, padding=1),
 
-            VAE_ResidualBock(512, 512),
-            VAE_ResidualBock(512, 512),
-            VAE_ResidualBock(512, 512),
+            VAE_ResidualBlock(512, 512),
+            VAE_ResidualBlock(512, 512),
+            VAE_ResidualBlock(512, 512),
 
             # upsample H/2, W/2
             nn.Upsample(scale_factor=2),
 
             nn.Conv2d(512, 512, kernel_size=3, padding=1),
 
-            VAE_ResidualBock(512, 256),
-            VAE_ResidualBock(256, 256),
-            VAE_ResidualBock(256, 256),
+            VAE_ResidualBlock(512, 256),
+            VAE_ResidualBlock(256, 256),
+            VAE_ResidualBlock(256, 256),
 
             nn.Upsample(scale_factor=2),
 
             nn.Conv2d(256, 256, kernel_size=3, padding=1),
 
-            VAE_ResidualBock(256, 128),
-            VAE_ResidualBock(128, 128),
-            VAE_ResidualBock(128, 128),        
+            VAE_ResidualBlock(256, 128),
+            VAE_ResidualBlock(128, 128),
+            VAE_ResidualBlock(128, 128),        
             
             nn.GroupNorm(32, 128),
 

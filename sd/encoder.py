@@ -1,40 +1,40 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from decoder import VAE_AttentionBlock, VAE_ResidualBlcok
+from decoder import VAE_AttentionBlock, VAE_ResidualBlock
 
 
 class VAE_Encoder(nn.Sequential):
     def __init__(self):
         super().__init__(
             nn.Conv2d(3, 128, kernel_size=3, padding=1),
-            VAE_ResidualBlcok(128, 128),
-            VAE_ResidualBlcok(128, 128),
+            VAE_ResidualBlock(128, 128),
+            VAE_ResidualBlock(128, 128),
             # 1/2
             nn.Conv2d(128, 128, kernel_size=3, stride=2, padding=0),
-            VAE_ResidualBlcok(128, 256),
-            VAE_ResidualBlcok(256, 256),
+            VAE_ResidualBlock(128, 256),
+            VAE_ResidualBlock(256, 256),
             # 1/4
-            nn.Conv2D(256, 256, kernel_size=3, stride=2, padding=0),
-            VAE_ResidualBlcok(256, 512),
-            VAE_ResidualBlcok(512, 512),
+            nn.Conv2d(256, 256, kernel_size=3, stride=2, padding=0),
+            VAE_ResidualBlock(256, 512),
+            VAE_ResidualBlock(512, 512),
             # 1/8
-            nn.Conv2D(512, 512, kernel_size=3, stride=2, padding=0),
-            VAE_ResidualBlcok(512, 512),
-            VAE_ResidualBlcok(512, 512),
+            nn.Conv2d(512, 512, kernel_size=3, stride=2, padding=0),
+            VAE_ResidualBlock(512, 512),
+            VAE_ResidualBlock(512, 512),
 
-            VAE_ResidualBlcok(512, 512),
+            VAE_ResidualBlock(512, 512),
 
             VAE_AttentionBlock(512),
 
-            VAE_ResidualBlcok(512, 512),
+            VAE_ResidualBlock(512, 512),
 
             nn.GroupNorm(32, 512),
 
             nn.SiLU(),
 
             nn.Conv2d(512, 8, kernel_size=3, padding=1),
-            nn.Conv2D(8, 8, kernel_size=1, padding=0),
+            nn.Conv2d(8, 8, kernel_size=1, padding=0),
         )
         
     def forward(self, x: torch.Tensor, noise: torch.Tensor) -> torch.Tensor:

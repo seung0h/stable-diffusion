@@ -1,7 +1,7 @@
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from sd.attention import SelfAttention
+from attention import SelfAttention
 
 
 class CLIPEmbedding(nn.Module):
@@ -53,9 +53,10 @@ class CLIPLayer(nn.Module):
 class CLIP(nn.Module):
 
     def __init__(self):
-        self.embedding = CLIPEmbedding(49400, 768, 77)
+        super().__init__()
+        self.embedding = CLIPEmbedding(49408, 768, 77)
 
-        self.layers = nn.Module([
+        self.layers = nn.ModuleList([
             CLIPLayer(12, 768) for i in range(12)
         ])
 

@@ -11,16 +11,16 @@ LATENTS_HEIGHT = HEIGHT // 8
 # uncond_prompt -> negative prompt that we don't want to generate
 def generate(prompt: str, uncond_prompt: str, input_image=None, 
              strength=0.8, do_cfg=True, cfg_scale=7.5, 
-             sampler="ddpm", n_inference_steps=50, models={}, 
+             sampler_name="ddpm", n_inference_steps=50, models={}, 
              seed=None, device=None, idle_device=None, tokenizer=None):
     
     with torch.no_grad():
         if not (0 < strength <= 1):
             raise ValueError("strength must be in (0, 1]")
         if idle_device:
-            to_idle: lambda x: x.to(idle_device)
+            to_idle = lambda x: x.to(idle_device)
         else:
-            to_idle: lambda x: x
+            to_idle = lambda x: x
 
         # for deterministic generation by strictly setting seed in generator
         generator = torch.Generator(device=device)
@@ -57,9 +57,9 @@ def generate(prompt: str, uncond_prompt: str, input_image=None,
         to_idle(clip) # off-loaded clip for removing GPU burden
 
         # scheduler part
-        if sampler == "ddpm":
+        if sampler_name == "ddpm":
             sampler = DDPMSampler(generator)
-            sampler.set_inference_steps(n_inference_steps)
+            sampler.set_inference_timesteps(n_inference_steps)
         else:
             raise ValueError(f"Unknown sampler: {sampler}")
 
@@ -71,7 +71,7 @@ def generate(prompt: str, uncond_prompt: str, input_image=None,
 
             input_image_tensor = input_image.resize((WIDTH, HEIGHT))
             input_image_tensor = np.array(input_image_tensor)
-            input_image_tensor = torch.tensor(input_image_tensor, dtype=torch.float32)
+            input_image_tensor = torch.tensor(input_image_tensor, dtype=torch.float32, device=device)
             input_image_tensor = rescale(input_image_tensor, (0, 255), (-1, 1))
             # (H, W, C) -> (B, H, W, C)
             input_image_tensor = input_image_tensor.unsqueeze(0)
@@ -134,7 +134,7 @@ def rescale(x, old_range, new_range, clamp=False):
     old_min, old_max = old_range
     new_min, new_max = new_range
     x -= old_min
-    x = x * (new_max - new_min) / (old_max - old_min)
+    x *= (new_max - new_min) / (old_max - old_min)
     x += new_min
     if clamp:
         x = x.clamp(new_min, new_max)
