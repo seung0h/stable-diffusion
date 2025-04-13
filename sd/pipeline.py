@@ -24,7 +24,7 @@ def generate(prompt: str, uncond_prompt: str, input_image=None,
 
         # for deterministic generation by strictly setting seed in generator
         generator = torch.Generator(device=device)
-        if seed is not None:
+        if seed is None:
             generator.seed()
         else:
             generator.manual_seed(seed)
